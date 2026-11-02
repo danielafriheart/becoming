@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { P, BD, LV, FL, L, TF, MAX, cnt, has, qt, ans, stat, lvi } from "./data";
 import { buildPdf, plainText } from "./pdf";
+import { Analytics } from "@vercel/analytics/next"
 
 const K = "ppa2026";
 
