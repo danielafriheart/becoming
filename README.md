@@ -17,7 +17,7 @@ Output goes to `dist/`.
 ## Deploy to Vercel
 1. Push this folder to a GitHub repo
 2. Go to vercel.com/new and import the repo
-3. Vercel detects Vite automatically (build: `npm run build`, output: `dist`)
+3. Keep the project root set to this folder. `vercel.json` configures the build (`npm run build`), output (`dist`), and SPA fallback.
 4. Click Deploy
 
 Or with the CLI: `npm i -g vercel`, then run `vercel --prod` in this folder.
