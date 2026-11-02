@@ -18,32 +18,56 @@ function doPost(e) {
 
     const spreadsheet = SpreadsheetApp.openById(TARGET_SPREADSHEET_ID);
     const sheet = spreadsheet.getSheetById(TARGET_SHEET_ID);
-    if (!sheet) throw new Error("The target spreadsheet tab was not found.");
+    if (!sheet) throw new Error("TARGET_TAB_NOT_FOUND");
     const lock = LockService.getScriptLock();
     lock.waitLock(10000);
     try {
-      if (sheet.getLastRow() === 0) {
-        sheet.appendRow(["Submitted at", "Full name", "Email", "Country"]);
-      } else {
-        const headers = sheet.getRange(1, 1, 1, 4).getValues()[0];
-        if (
-          headers[0] !== "Submitted at" ||
-          headers[1] !== "Full name" ||
-          headers[2] !== "Email"
-        ) {
-          throw new Error("The target sheet headers do not match the expected submission columns.");
-        }
-        if (!headers[3]) sheet.getRange(1, 4).setValue("Country");
-        else if (headers[3] !== "Country") throw new Error("The target sheet country column is occupied.");
-      }
-      sheet.appendRow([new Date(), safeCell(fullName), safeCell(email), country]);
+      const requiredHeaders = ["Submitted at", "Full name", "Email", "Country"];
+      const lastColumn = sheet.getLastColumn();
+      const headers = lastColumn
+        ? sheet.getRange(1, 1, 1, lastColumn).getDisplayValues()[0]
+        : [];
+      const headerColumns = requiredHeaders.map((header) =>
+        headers.findIndex((value) => String(value).trim().toLowerCase() === header.toLowerCase()) + 1
+      );
+      let nextColumn = lastColumn + 1;
+      headerColumns.forEach((column, index) => {
+        if (column) return;
+        headerColumns[index] = nextColumn;
+        sheet.getRange(1, nextColumn).setValue(requiredHeaders[index]);
+        nextColumn += 1;
+      });
+
+      const values = Array(Math.max(lastColumn, nextColumn - 1)).fill("");
+      [
+        new Date(),
+        safeCell(fullName),
+        safeCell(email),
+        country,
+      ].forEach((value, index) => {
+        values[headerColumns[index] - 1] = value;
+      });
+      sheet.appendRow(values);
     } finally {
       lock.releaseLock();
     }
     return json({ ok: true });
   } catch (error) {
     console.error(error);
-    return json({ ok: false, error: "Could not save submission." });
+    const message = error && error.message;
+    if (message === "TARGET_TAB_NOT_FOUND") {
+      return json({ ok: false, error: "The target spreadsheet tab was not found. Check that the tab still has gid=0." });
+    }
+    if (/permission|authorization|access/i.test(String(message))) {
+      return json({
+        ok: false,
+        error: "Apps Script cannot access the spreadsheet. Check that the web app executes as your account and that your account can edit the sheet.",
+      });
+    }
+    return json({
+      ok: false,
+      error: "Apps Script couldn't write to the spreadsheet. Check the latest Apps Script execution for details.",
+    });
   }
 }
 

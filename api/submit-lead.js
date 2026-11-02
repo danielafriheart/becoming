@@ -39,10 +39,36 @@ export default async function handler(req, res) {
       body: new URLSearchParams({ fullName, email, country }),
       signal: AbortSignal.timeout(15000),
     });
-    const result = await response.json().catch(() => null);
+    const responseText = await response.text();
+    let result;
+    try {
+      result = JSON.parse(responseText);
+    } catch {
+      result = null;
+    }
     if (!response.ok || !result?.ok) {
-      console.error("Google Sheets submission failed.", response.status, result?.error);
-      return res.status(502).json({ ok: false, error: "Google Sheets could not save your details." });
+      const contentType = response.headers.get("content-type") || "unknown content type";
+      const finalHost = response.url ? new URL(response.url).hostname : "";
+      const isHtml =
+        contentType.includes("text/html") ||
+        /^\s*<!doctype html|^\s*<html/i.test(responseText);
+      let error = result?.error;
+      if (!error && isHtml) {
+        error = "Google returned a sign-in or HTML page instead of the Apps Script response. Check that GOOGLE_APPS_SCRIPT_URL is the deployed /exec URL and that the web app is accessible to anyone.";
+      } else if (!error) {
+        error = `Apps Script returned an unexpected response (HTTP ${response.status}, ${contentType}${finalHost ? `, ${finalHost}` : ""}). Check the deployed web-app URL and Apps Script execution logs.`;
+      }
+      console.error("Google Sheets submission failed.", {
+        status: response.status,
+        contentType,
+        finalHost,
+        hasJsonResponse: Boolean(result),
+        scriptError: result?.error,
+      });
+      return res.status(502).json({
+        ok: false,
+        error,
+      });
     }
     return res.status(200).json({ ok: true });
   } catch (error) {
