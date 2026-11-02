@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { P, BD, LV, FL, L, TF, MAX, cnt, has, qt, ans, stat, lvi } from "./data";
 import { buildPdf, plainText } from "./pdf";
-import { Analytics } from "@vercel/analytics/next"
+import { Analytics } from "@vercel/analytics/react";
+import { submitLead } from "./lead";
 
 const K = "ppa2026";
 
@@ -224,6 +225,9 @@ function Review({ A }) {
 
 function DoneScreen({ A, onBack, onClear }) {
   const [msg, setMsg] = useState(null);
+  const [leadOpen, setLeadOpen] = useState(false);
+  const [leadError, setLeadError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const st = stat(A);
   const g = (i) => (has(A, "7." + i) ? A["7." + i] : "(not answered)");
 
@@ -241,6 +245,25 @@ function DoneScreen({ A, onBack, onClear }) {
       setMsg({ t: "Your PDF is downloading. Keep it somewhere safe." });
     } catch {
       setMsg({ t: "Couldn’t create the PDF. Use Copy text instead." });
+    }
+  };
+
+  const submitAndDownload = async (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    setSubmitting(true);
+    setLeadError("");
+    try {
+      await submitLead({
+        fullName: String(formData.get("fullName") || "").trim(),
+        email: String(formData.get("email") || "").trim(),
+      });
+      setLeadOpen(false);
+      await download();
+    } catch (error) {
+      setLeadError(error instanceof Error ? error.message : "We couldn’t submit your details. Please try again.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -281,9 +304,71 @@ function DoneScreen({ A, onBack, onClear }) {
         <button className="ghost" onClick={onBack}>Back</button>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
           <button className="ghost" onClick={copy}>Copy text</button>
-          <button onClick={download}>Download PDF</button>
+          <button onClick={() => { setLeadError(""); setLeadOpen(true); }}>Download PDF</button>
         </div>
       </div>
+      {leadOpen && (
+        <div className="lead-backdrop" onMouseDown={(event) => {
+          if (event.target === event.currentTarget && !submitting) setLeadOpen(false);
+        }}>
+          <section
+            className="lead-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="lead-title"
+            aria-describedby="lead-description"
+            onKeyDown={(event) => {
+              if (event.key === "Escape" && !submitting) setLeadOpen(false);
+            }}
+          >
+            <button
+              className="lead-close ghost"
+              type="button"
+              aria-label="Close"
+              onClick={() => setLeadOpen(false)}
+              disabled={submitting}
+            >
+              ×
+            </button>
+            <div className="eyebrow">One last step</div>
+            <h2 id="lead-title">Get your audit PDF</h2>
+            <p className="lead" id="lead-description">
+              Enter your details to download. Your name and email will be sent to our Google Sheet;
+              your audit answers are not included.
+            </p>
+            <form className="lead-form" onSubmit={submitAndDownload}>
+              <label htmlFor="lead-full-name">Full name</label>
+              <input
+                id="lead-full-name"
+                name="fullName"
+                type="text"
+                autoComplete="name"
+                maxLength={120}
+                required
+                autoFocus
+              />
+              <label htmlFor="lead-email">Email address</label>
+              <input
+                id="lead-email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                maxLength={254}
+                required
+              />
+              {leadError && <p className="lead-error" role="alert">{leadError}</p>}
+              <div className="lead-actions">
+                <button className="ghost" type="button" onClick={() => setLeadOpen(false)} disabled={submitting}>
+                  Cancel
+                </button>
+                <button type="submit" disabled={submitting}>
+                  {submitting ? "Submitting…" : "Submit & download"}
+                </button>
+              </div>
+            </form>
+          </section>
+        </div>
+      )}
       {msg && (
         <>
           <div className="card" style={{ textAlign: "center" }}>{msg.t}</div>
@@ -380,7 +465,10 @@ export default function App() {
   return (
     <>
       <div className="wrap">
-        <header className="top">Becoming</header>
+        <header className="top">
+          <img src="/logo.svg" alt="" />
+          <span>Becoming</span>
+        </header>
         <Hud A={A} step={step} onJump={jump} />
         <div id="app">{screen}</div>
         <div className="notes">
@@ -390,6 +478,7 @@ export default function App() {
       </div>
       <footer className="ft" aria-hidden="true">Becoming</footer>
       <div id="toast" className={toast ? "on" : ""}>{toast}</div>
+      <Analytics />
     </>
   );
 }

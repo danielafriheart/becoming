@@ -95,6 +95,9 @@ h2,
 }
 
 .top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     font-family: "Inter Display", Inter, system-ui, sans-serif;
     font-weight: 700;
     font-variation-settings: "opsz" 32;
@@ -103,6 +106,12 @@ h2,
     color: #fff;
     text-align: left;
     padding: 6px 4px 26px
+}
+
+.top img {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px
 }
 
 #hud {
@@ -457,6 +466,96 @@ button.danger {
     color: var(--mut);
     background: transparent;
     box-shadow: none
+}
+
+button:disabled {
+    cursor: wait;
+    opacity: .6
+}
+
+.lead-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, .78);
+    backdrop-filter: blur(8px)
+}
+
+.lead-dialog {
+    position: relative;
+    width: min(100%, 460px);
+    padding: 30px;
+    max-height: calc(100vh - 40px);
+    max-height: calc(100dvh - 40px);
+    overflow-y: auto;
+    border: 1px solid #383838;
+    border-radius: 24px;
+    background: linear-gradient(180deg, #171717, #0b0b0b);
+    box-shadow: 0 30px 100px rgba(0, 0, 0, .7)
+}
+
+.lead-dialog h2 {
+    margin: 8px 0
+}
+
+.lead-dialog .lead {
+    margin: 0 0 20px;
+    font-size: 14px
+}
+
+.lead-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    font-size: 24px
+}
+
+.lead-form {
+    display: grid;
+    gap: 8px
+}
+
+.lead-form label {
+    margin-top: 6px;
+    color: #d4d4d4;
+    font-size: 13px;
+    font-weight: 500
+}
+
+.lead-form input {
+    width: 100%;
+    min-height: 48px;
+    padding: 10px 13px;
+    border: 1px solid var(--bd);
+    border-radius: 12px;
+    background: #070707;
+    color: var(--fg);
+    font: 400 16px Inter, system-ui, sans-serif
+}
+
+.lead-form input:focus {
+    outline: none;
+    border-color: #bdbdbd;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, .3)
+}
+
+.lead-error {
+    margin: 8px 0 0;
+    color: #ff9a9a;
+    font-size: 14px
+}
+
+.lead-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 18px
 }
 
 .break {
