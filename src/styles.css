@@ -528,7 +528,8 @@ button:disabled {
     font-weight: 500
 }
 
-.lead-form input {
+.lead-form input,
+.lead-form select {
     width: 100%;
     min-height: 48px;
     padding: 10px 13px;
@@ -539,7 +540,12 @@ button:disabled {
     font: 400 16px Inter, system-ui, sans-serif
 }
 
-.lead-form input:focus {
+.lead-form select {
+    color-scheme: dark
+}
+
+.lead-form input:focus,
+.lead-form select:focus {
     outline: none;
     border-color: #bdbdbd;
     box-shadow: 0 0 0 1px rgba(255, 255, 255, .3)

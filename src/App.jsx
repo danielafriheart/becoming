@@ -3,6 +3,7 @@ import { P, BD, LV, FL, L, TF, MAX, cnt, has, qt, ans, stat, lvi } from "./data"
 import { buildPdf, plainText } from "./pdf";
 import { Analytics } from "@vercel/analytics/react";
 import { submitLead } from "./lead";
+import { countries } from "./countries";
 
 const K = "ppa2026";
 
@@ -257,6 +258,7 @@ function DoneScreen({ A, onBack, onClear }) {
       await submitLead({
         fullName: String(formData.get("fullName") || "").trim(),
         email: String(formData.get("email") || "").trim(),
+        country: String(formData.get("country") || ""),
       });
       setLeadOpen(false);
       await download();
@@ -304,7 +306,7 @@ function DoneScreen({ A, onBack, onClear }) {
         <button className="ghost" onClick={onBack}>Back</button>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
           <button className="ghost" onClick={copy}>Copy text</button>
-          <button onClick={() => { setLeadError(""); setLeadOpen(true); }}>Download PDF</button>
+          <button onClick={() => { setLeadError(""); setLeadOpen(true); }}>Download Audit</button>
         </div>
       </div>
       {leadOpen && (
@@ -331,7 +333,7 @@ function DoneScreen({ A, onBack, onClear }) {
               ×
             </button>
             <div className="eyebrow">One last step</div>
-            <h2 id="lead-title">Get your audit PDF</h2>
+            <h2 id="lead-title">Get your audit</h2>
             <p className="lead" id="lead-description">
               Enter your details to download. Your name and email will be sent to our Google Sheet;
               your audit answers are not included.
@@ -356,6 +358,15 @@ function DoneScreen({ A, onBack, onClear }) {
                 maxLength={254}
                 required
               />
+              <label htmlFor="lead-country">Country</label>
+              <select id="lead-country" name="country" defaultValue="" required>
+                <option value="" disabled>Select your country</option>
+                {countries.map(({ code, name, flag }) => (
+                  <option key={code} value={code}>
+                    {flag} {code} — {name}
+                  </option>
+                ))}
+              </select>
               {leadError && <p className="lead-error" role="alert">{leadError}</p>}
               <div className="lead-actions">
                 <button className="ghost" type="button" onClick={() => setLeadOpen(false)} disabled={submitting}>

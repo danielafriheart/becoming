@@ -6,13 +6,15 @@ export default async function handler(req, res) {
 
   const fullName = typeof req.body?.fullName === "string" ? req.body.fullName.trim() : "";
   const email = typeof req.body?.email === "string" ? req.body.email.trim() : "";
+  const country = typeof req.body?.country === "string" ? req.body.country.trim() : "";
   if (
     !fullName ||
     fullName.length > 120 ||
     !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
-    email.length > 254
+    email.length > 254 ||
+    !/^[A-Z]{2}$/.test(country)
   ) {
-    return res.status(400).json({ ok: false, error: "Enter a valid name and email address." });
+    return res.status(400).json({ ok: false, error: "Enter a valid name, email address, and country." });
   }
 
   const endpoint = process.env.GOOGLE_APPS_SCRIPT_URL;
@@ -34,7 +36,7 @@ export default async function handler(req, res) {
     const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
-      body: new URLSearchParams({ fullName, email }),
+      body: new URLSearchParams({ fullName, email, country }),
       signal: AbortSignal.timeout(15000),
     });
     const result = await response.json().catch(() => null);
