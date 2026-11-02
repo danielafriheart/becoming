@@ -335,8 +335,7 @@ function DoneScreen({ A, onBack, onClear }) {
             <div className="eyebrow">One last step</div>
             <h2 id="lead-title">Get your audit</h2>
             <p className="lead" id="lead-description">
-              Enter your details to download. Your name and email will be sent to our Google Sheet;
-              your audit answers are not included.
+              Enter your details below to access your audit. We only collect your name and email. Your audit responses are not stored.
             </p>
             <form className="lead-form" onSubmit={submitAndDownload}>
               <label htmlFor="lead-full-name">Full name</label>
